@@ -1,0 +1,1706 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>M!LK Call Editor</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 20px 12px 60px;
+  background: #f7f7f7;
+  color: #222;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Hiragino Kaku Gothic ProN",
+    "Yu Gothic",
+    Meiryo,
+    sans-serif;
+}
+
+.container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+h1 {
+  margin: 0 0 18px;
+  font-size: 26px;
+  text-align: center;
+}
+
+h2 {
+  margin: 0 0 12px;
+  font-size: 20px;
+}
+
+h3 {
+  margin: 0 0 10px;
+  font-size: 17px;
+}
+
+.card {
+  background: white;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 7px;
+}
+
+select,
+input,
+textarea,
+button {
+  font: inherit;
+}
+
+select,
+input[type="text"],
+input[type="number"],
+textarea {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 9px;
+  padding: 10px;
+  background: white;
+}
+
+select {
+  cursor: pointer;
+}
+
+textarea {
+  min-height: 170px;
+  resize: vertical;
+  line-height: 1.7;
+}
+
+button {
+  border: none;
+  border-radius: 9px;
+  padding: 10px 14px;
+  cursor: pointer;
+  background: #222;
+  color: white;
+  font-weight: bold;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button.secondary {
+  background: #777;
+}
+
+button.green {
+  background: #218838;
+}
+
+button.blue {
+  background: #1769aa;
+}
+
+button.red {
+  background: #c62828;
+}
+
+button.orange {
+  background: #d97706;
+}
+
+button.large {
+  width: 100%;
+  padding: 15px;
+  font-size: 17px;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.button-row button {
+  flex: 1;
+  min-width: 130px;
+}
+
+#player {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #111;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+#player iframe {
+  width: 100%;
+  height: 100%;
+}
+
+.time-display {
+  margin: 12px 0;
+  text-align: center;
+  font-size: 28px;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+}
+
+.status {
+  text-align: center;
+  min-height: 24px;
+  margin-top: 6px;
+  color: #555;
+  font-size: 14px;
+}
+
+.editor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 700px) {
+  .editor-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body {
+    padding: 14px 8px 50px;
+  }
+
+  h1 {
+    font-size: 23px;
+  }
+}
+
+.record-box {
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.record-box.lyric {
+  border-color: #7aa7ff;
+}
+
+.record-box.call {
+  border-color: #e5a0a0;
+}
+
+.current-time-small {
+  font-size: 18px;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+}
+
+.entry-list {
+  margin-top: 12px;
+}
+
+.entry {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 8px;
+  background: #fafafa;
+}
+
+.entry-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.entry-time {
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  color: #444;
+}
+
+.entry-text {
+  margin-top: 7px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+.entry-actions {
+  display: flex;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.entry-actions button {
+  padding: 6px 9px;
+  font-size: 13px;
+}
+
+.empty {
+  color: #888;
+  text-align: center;
+  padding: 18px 5px;
+}
+
+.small {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.warning {
+  background: #fff8df;
+  border: 1px solid #ead48b;
+  border-radius: 10px;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.import-area {
+  display: none;
+  margin-top: 12px;
+}
+
+.import-area.show {
+  display: block;
+}
+
+.code-output {
+  display: none;
+  margin-top: 12px;
+}
+
+.code-output.show {
+  display: block;
+}
+
+.code-output textarea {
+  min-height: 260px;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid #eee;
+  margin: 18px 0;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>🎵 M!LK Call Editor</h1>
+
+  <!-- 曲選択 -->
+  <div class="card">
+
+    <label for="songSelect">曲を選択</label>
+
+    <select id="songSelect"></select>
+
+    <div class="small" style="margin-top:8px;">
+      曲ごとに編集データを保存できます。
+    </div>
+
+  </div>
+
+
+  <!-- プレイヤー -->
+  <div class="card">
+
+    <h2>▶️ プレイヤー</h2>
+
+    <div id="player"></div>
+
+    <div class="time-display" id="currentTime">
+      00:00.00
+    </div>
+
+    <div class="button-row">
+
+      <button class="blue" onclick="seekMinus()">
+        ⏪ 0.5秒戻る
+      </button>
+
+      <button class="blue" onclick="seekPlus()">
+        0.5秒進む ⏩
+      </button>
+
+      <button class="secondary" onclick="refreshTime()">
+        時刻更新
+      </button>
+
+    </div>
+
+    <div class="status" id="playerStatus">
+      YouTubeプレイヤーを読み込んでいます……
+    </div>
+
+  </div>
+
+
+  <!-- 歌詞 -->
+  <div class="card">
+
+    <h2>📝 歌詞編集</h2>
+
+    <p class="small">
+      まず歌詞を「1行＝1フレーズ」で貼り付けてください。<br>
+      その後、曲を再生しながら「この歌詞の開始時刻を記録」を押していきます。
+    </p>
+
+    <textarea
+      id="lyricsInput"
+      placeholder="歌詞を1行ずつ貼り付け&#10;&#10;例：&#10;○○○○○&#10;△△△△△&#10;□□□"
+    ></textarea>
+
+    <div class="button-row" style="margin-top:10px;">
+
+      <button
+        class="secondary"
+        onclick="loadLyricsText()">
+        歌詞を編集欄に反映
+      </button>
+
+      <button
+        class="orange"
+        onclick="clearLyrics()">
+        歌詞データをクリア
+      </button>
+
+    </div>
+
+
+    <div class="record-box lyric">
+
+      <h3>🎤 歌詞を現在時刻に記録</h3>
+
+      <div class="current-time-small" id="lyricRecordTime">
+        00:00.00
+      </div>
+
+      <input
+        type="text"
+        id="lyricText"
+        placeholder="この時刻から始まる歌詞"
+        style="margin-top:8px;"
+      >
+
+      <button
+        class="large blue"
+        style="margin-top:8px;"
+        onclick="recordLyric()">
+        🎤 この歌詞の開始時刻を記録
+      </button>
+
+    </div>
+
+    <div class="entry-list" id="lyricsList"></div>
+
+  </div>
+
+
+  <!-- コール -->
+  <div class="card">
+
+    <h2>📣 コール編集</h2>
+
+    <p class="small">
+      曲を再生しながらコールが始まる瞬間に記録してください。
+    </p>
+
+    <div class="record-box call">
+
+      <h3>📣 コールを現在時刻に記録</h3>
+
+      <div class="current-time-small" id="callRecordTime">
+        00:00.00
+      </div>
+
+      <input
+        type="text"
+        id="callText"
+        placeholder="コールの文字"
+        style="margin-top:8px;"
+      >
+
+      <label style="margin-top:10px;">
+        表示時間（秒）
+      </label>
+
+      <input
+        type="number"
+        id="callDuration"
+        value="1.5"
+        min="0.1"
+        step="0.1"
+      >
+
+      <button
+        class="large"
+        style="margin-top:8px;"
+        onclick="recordCall()">
+        📣 このコールを記録
+      </button>
+
+    </div>
+
+    <div class="entry-list" id="callsList"></div>
+
+  </div>
+
+
+  <!-- データ -->
+  <div class="card">
+
+    <h2>💾 データ</h2>
+
+    <p class="small">
+      データは曲ごとに保存されます。<br>
+      念のため、完成した曲はJSONやコードとしてバックアップしてください。
+    </p>
+
+    <div class="button-row">
+
+      <button
+        class="green"
+        onclick="downloadJSON()">
+        📥 JSONを書き出す
+      </button>
+
+      <button
+        class="blue"
+        onclick="showCodeExport()">
+        📋 コードを書き出す
+      </button>
+
+      <button
+        class="secondary"
+        onclick="toggleImport()">
+        📤 JSONを読み込む
+      </button>
+
+    </div>
+
+
+    <div id="importArea" class="import-area">
+
+      <h3 style="margin-top:15px;">
+        JSON読み込み
+      </h3>
+
+      <input
+        type="file"
+        id="jsonFile"
+        accept=".json,application/json"
+      >
+
+      <button
+        class="large green"
+        style="margin-top:8px;"
+        onclick="importJSON()">
+        JSONを読み込んで現在の曲に反映
+      </button>
+
+    </div>
+
+
+    <div id="codeOutput" class="code-output">
+
+      <h3 style="margin-top:15px;">
+        コード書き出し（コピペ用）
+      </h3>
+
+      <p class="small">
+        これをコピーしてChatGPTに送れば、
+        最終的なお母さん用HTMLに組み込めます。
+      </p>
+
+      <textarea id="codeTextarea" readonly></textarea>
+
+      <div class="button-row" style="margin-top:8px;">
+
+        <button
+          class="blue"
+          onclick="copyCode()">
+          📋 コードをコピー
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="card">
+
+    <h2>⚠️ 今回の編集データについて</h2>
+
+    <div class="warning">
+      この編集画面では、ブラウザの保存領域にもデータを保存しています。
+      ブラウザのデータを消した場合などに備えて、
+      完成した曲は「JSONを書き出す」または
+      「コードを書き出す」でバックアップしてください。
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   曲データ
+========================================================= */
+
+const songs = [
+  { song: "コーヒーが飲めません", videoId: "S0Mnp6D8fsw" },
+  { song: "反抗期アバンチュール", videoId: "54F33VezY64" },
+  { song: "新学期アラカルト", videoId: "ZaUknVdp9b0" },
+  { song: "夏味ランデブー", videoId: "baM2h4gA25I" },
+  { song: "疾走ペンデュラム", videoId: "FszLsJaFUt8" },
+  { song: "Milky Snow", videoId: "GquPDyruk28" },
+  { song: "テルネロファイター", videoId: "_HbcPp888mM" },
+  { song: "サンキュー！N・D・K！", videoId: "XPMbFgs88hY" },
+  { song: "めちゃモル", videoId: "WEPZ---ZMnI" },
+  { song: "Brave Saga", videoId: "6e5aLbCwtB0" },
+  { song: "My Treasure", videoId: "DgX9cX3FCjw" },
+  { song: "SAY YEAH", videoId: "k9a1Ou7sl-c" },
+  { song: "DEAR LIFE", videoId: "eSS-248rywA" },
+  { song: "シアワシェイク", videoId: "9SLYEDt_HfI" },
+  { song: "フレ！フレ！オレ！", videoId: "3zsD0tQMS78" },
+  { song: "エビバディグッジョブ！", videoId: "A3H3Ldc25Ts" },
+  { song: "ブンブンブン", videoId: "69H3LETHcoc" },
+  { song: "LUCKY CALL", videoId: "dVMDWxIAAy8" },
+  { song: "好きすぎて滅！", videoId: "14cxcH1eiPc" },
+  { song: "爆裂愛してる", videoId: "20bYUQZOAeQ" },
+  { song: "アイドルパワー", videoId: "d1d9cz3LcJ4" },
+  { song: "You!Joy!Parade!", videoId: "lx3KDeBoLMM" },
+  { song: "時空超えてユニバース", videoId: "bQBiZ5N-juo" }
+];
+
+
+/* =========================================================
+   現在の状態
+========================================================= */
+
+let currentSongIndex = 0;
+
+let player = null;
+
+let playerReady = false;
+
+let timer = null;
+
+let data = {
+  song: "",
+  videoId: "",
+  lyrics: [],
+  calls: []
+};
+
+
+/* =========================================================
+   初期化
+========================================================= */
+
+const songSelect = document.getElementById("songSelect");
+
+songs.forEach((song, index) => {
+
+  const option = document.createElement("option");
+
+  option.value = index;
+
+  option.textContent = song.song;
+
+  songSelect.appendChild(option);
+
+});
+
+
+songSelect.addEventListener("change", function() {
+
+  currentSongIndex = Number(this.value);
+
+  loadSong(currentSongIndex);
+
+});
+
+
+function createEmptyData(index) {
+
+  return {
+    song: songs[index].song,
+    videoId: songs[index].videoId,
+    lyrics: [],
+    calls: []
+  };
+
+}
+
+
+/* =========================================================
+   LocalStorage
+========================================================= */
+
+function storageKey(index) {
+
+  return "milk_call_editor_" + songs[index].videoId;
+
+}
+
+
+function loadSavedData(index) {
+
+  try {
+
+    const saved = localStorage.getItem(storageKey(index));
+
+    if (!saved) {
+      return createEmptyData(index);
+    }
+
+    const parsed = JSON.parse(saved);
+
+    if (
+      parsed.videoId !== songs[index].videoId ||
+      parsed.song !== songs[index].song
+    ) {
+      return createEmptyData(index);
+    }
+
+    return {
+      song: parsed.song,
+      videoId: parsed.videoId,
+      lyrics: Array.isArray(parsed.lyrics) ? parsed.lyrics : [],
+      calls: Array.isArray(parsed.calls) ? parsed.calls : []
+    };
+
+  } catch (error) {
+
+    console.error(error);
+
+    return createEmptyData(index);
+
+  }
+
+}
+
+
+function saveCurrentData() {
+
+  localStorage.setItem(
+    storageKey(currentSongIndex),
+    JSON.stringify(data)
+  );
+
+}
+
+
+/* =========================================================
+   曲を読み込む
+========================================================= */
+
+function loadSong(index) {
+
+  data = loadSavedData(index);
+
+  document.getElementById("lyricsInput").value =
+    data.lyrics
+      .sort((a,b) => a.time - b.time)
+      .map(item => item.text)
+      .join("\n");
+
+  renderLyrics();
+
+  renderCalls();
+
+  updateTimeDisplays();
+
+  if (player && playerReady) {
+
+    try {
+
+      player.loadVideoById(
+        songs[index].videoId
+      );
+
+    } catch (error) {
+
+      console.error(error);
+
+    }
+
+  }
+
+  document.getElementById("codeOutput").classList.remove("show");
+
+}
+
+
+/* =========================================================
+   YouTube IFrame API
+========================================================= */
+
+function onYouTubeIframeAPIReady() {
+
+  createPlayer();
+
+}
+
+
+function createPlayer() {
+
+  player = new YT.Player("player", {
+
+    videoId: songs[currentSongIndex].videoId,
+
+    playerVars: {
+      playsinline: 1,
+      rel: 0
+    },
+
+    events: {
+
+      onReady: function() {
+
+        playerReady = true;
+
+        document.getElementById("playerStatus").textContent =
+          "プレイヤー準備完了！";
+
+        startTimer();
+
+      },
+
+      onStateChange: function(event) {
+
+        if (event.data === YT.PlayerState.PLAYING) {
+
+          startTimer();
+
+        }
+
+        else {
+
+          stopTimer();
+
+        }
+
+      },
+
+      onError: function(event) {
+
+        document.getElementById("playerStatus").textContent =
+          "YouTube動画を読み込めませんでした。";
+
+        console.error("YouTube error:", event.data);
+
+      }
+
+    }
+
+  });
+
+}
+
+
+/* =========================================================
+   時刻
+========================================================= */
+
+function getCurrentTime() {
+
+  if (
+    !player ||
+    !playerReady ||
+    typeof player.getCurrentTime !== "function"
+  ) {
+
+    return 0;
+
+  }
+
+  try {
+
+    return Number(player.getCurrentTime()) || 0;
+
+  } catch (error) {
+
+    return 0;
+
+  }
+
+}
+
+
+function formatTime(seconds) {
+
+  seconds = Math.max(0, Number(seconds) || 0);
+
+  const minutes = Math.floor(seconds / 60);
+
+  const secs = seconds % 60;
+
+  return (
+    String(minutes).padStart(2, "0") +
+    ":" +
+    secs.toFixed(2).padStart(5, "0")
+  );
+
+}
+
+
+function updateTimeDisplays() {
+
+  const time = getCurrentTime();
+
+  document.getElementById("currentTime").textContent =
+    formatTime(time);
+
+  document.getElementById("lyricRecordTime").textContent =
+    formatTime(time);
+
+  document.getElementById("callRecordTime").textContent =
+    formatTime(time);
+
+}
+
+
+function refreshTime() {
+
+  updateTimeDisplays();
+
+}
+
+
+function startTimer() {
+
+  stopTimer();
+
+  timer = setInterval(
+    updateTimeDisplays,
+    50
+  );
+
+}
+
+
+function stopTimer() {
+
+  if (timer) {
+
+    clearInterval(timer);
+
+    timer = null;
+
+  }
+
+}
+
+
+/* =========================================================
+   少し戻る・進む
+========================================================= */
+
+function seekMinus() {
+
+  if (!playerReady) return;
+
+  const time = Math.max(
+    0,
+    getCurrentTime() - 0.5
+  );
+
+  player.seekTo(time, true);
+
+}
+
+
+function seekPlus() {
+
+  if (!playerReady) return;
+
+  player.seekTo(
+    getCurrentTime() + 0.5,
+    true
+  );
+
+}
+
+
+/* =========================================================
+   歌詞
+========================================================= */
+
+function loadLyricsText() {
+
+  const text =
+    document.getElementById("lyricsInput").value;
+
+  const lines = text
+    .split("\n")
+    .map(line => line.trim())
+    .filter(line => line !== "");
+
+  if (lines.length === 0) {
+
+    alert("歌詞が入力されていません。");
+
+    return;
+
+  }
+
+  const oldLyrics = data.lyrics || [];
+
+  data.lyrics = lines.map((line, index) => {
+
+    if (oldLyrics[index]) {
+
+      return {
+        time: Number(oldLyrics[index].time) || 0,
+        text: line
+      };
+
+    }
+
+    return {
+      time: 0,
+      text: line
+    };
+
+  });
+
+  saveCurrentData();
+
+  renderLyrics();
+
+  alert(
+    lines.length +
+    "行の歌詞を反映しました！"
+  );
+
+}
+
+
+function clearLyrics() {
+
+  if (
+    !confirm(
+      "現在の歌詞データをすべて削除しますか？"
+    )
+  ) {
+    return;
+  }
+
+  data.lyrics = [];
+
+  document.getElementById("lyricsInput").value = "";
+
+  saveCurrentData();
+
+  renderLyrics();
+
+}
+
+
+function recordLyric() {
+
+  const textInput =
+    document.getElementById("lyricText");
+
+  const text =
+    textInput.value.trim();
+
+  if (!text) {
+
+    alert("歌詞を入力してください。");
+
+    textInput.focus();
+
+    return;
+
+  }
+
+  const time = getCurrentTime();
+
+  data.lyrics.push({
+
+    time: Number(time.toFixed(2)),
+
+    text: text
+
+  });
+
+  data.lyrics.sort(
+    (a,b) => a.time - b.time
+  );
+
+  saveCurrentData();
+
+  renderLyrics();
+
+  textInput.value = "";
+
+  textInput.focus();
+
+}
+
+
+function renderLyrics() {
+
+  const list =
+    document.getElementById("lyricsList");
+
+  list.innerHTML = "";
+
+  if (data.lyrics.length === 0) {
+
+    list.innerHTML =
+      '<div class="empty">まだ歌詞データがありません。</div>';
+
+    return;
+
+  }
+
+  data.lyrics
+    .sort((a,b) => a.time - b.time)
+    .forEach((item, index) => {
+
+      const div =
+        document.createElement("div");
+
+      div.className = "entry";
+
+      div.innerHTML = `
+        <div class="entry-top">
+          <span class="entry-time">
+            ${formatTime(item.time)}
+          </span>
+        </div>
+
+        <div class="entry-text"></div>
+
+        <div class="entry-actions">
+
+          <button
+            class="blue"
+            onclick="editLyric(${index})">
+            編集
+          </button>
+
+          <button
+            class="secondary"
+            onclick="seekTo(${Number(item.time)})">
+            ここへ移動
+          </button>
+
+          <button
+            class="red"
+            onclick="deleteLyric(${index})">
+            削除
+          </button>
+
+        </div>
+      `;
+
+      div.querySelector(".entry-text").textContent =
+        item.text;
+
+      list.appendChild(div);
+
+    });
+
+}
+
+
+function editLyric(index) {
+
+  const item = data.lyrics[index];
+
+  const newText =
+    prompt(
+      "歌詞を編集してください",
+      item.text
+    );
+
+  if (newText === null) return;
+
+  const newTime =
+    prompt(
+      "開始時刻（秒）",
+      item.time
+    );
+
+  if (newTime === null) return;
+
+  const time = Number(newTime);
+
+  if (!Number.isFinite(time) || time < 0) {
+
+    alert("時刻が正しくありません。");
+
+    return;
+
+  }
+
+  data.lyrics[index] = {
+
+    time: Number(time.toFixed(2)),
+
+    text: newText
+
+  };
+
+  data.lyrics.sort(
+    (a,b) => a.time - b.time
+  );
+
+  saveCurrentData();
+
+  renderLyrics();
+
+}
+
+
+function deleteLyric(index) {
+
+  if (
+    !confirm(
+      "この歌詞を削除しますか？"
+    )
+  ) {
+    return;
+  }
+
+  data.lyrics.splice(index, 1);
+
+  saveCurrentData();
+
+  renderLyrics();
+
+}
+
+
+/* =========================================================
+   コール
+========================================================= */
+
+function recordCall() {
+
+  const textInput =
+    document.getElementById("callText");
+
+  const durationInput =
+    document.getElementById("callDuration");
+
+  const text =
+    textInput.value.trim();
+
+  const duration =
+    Number(durationInput.value);
+
+  if (!text) {
+
+    alert("コールを入力してください。");
+
+    textInput.focus();
+
+    return;
+
+  }
+
+  if (
+    !Number.isFinite(duration) ||
+    duration <= 0
+  ) {
+
+    alert("表示時間を正しく入力してください。");
+
+    return;
+
+  }
+
+  const time = getCurrentTime();
+
+  data.calls.push({
+
+    time: Number(time.toFixed(2)),
+
+    duration: Number(duration.toFixed(2)),
+
+    text: text
+
+  });
+
+  data.calls.sort(
+    (a,b) => a.time - b.time
+  );
+
+  saveCurrentData();
+
+  renderCalls();
+
+  textInput.value = "";
+
+  textInput.focus();
+
+}
+
+
+function renderCalls() {
+
+  const list =
+    document.getElementById("callsList");
+
+  list.innerHTML = "";
+
+  if (data.calls.length === 0) {
+
+    list.innerHTML =
+      '<div class="empty">まだコールデータがありません。</div>';
+
+    return;
+
+  }
+
+  data.calls
+    .sort((a,b) => a.time - b.time)
+    .forEach((item, index) => {
+
+      const div =
+        document.createElement("div");
+
+      div.className = "entry";
+
+      div.innerHTML = `
+        <div class="entry-top">
+
+          <span class="entry-time">
+            ${formatTime(item.time)}
+          </span>
+
+          <span>
+            ${Number(item.duration).toFixed(1)}秒
+          </span>
+
+        </div>
+
+        <div class="entry-text"></div>
+
+        <div class="entry-actions">
+
+          <button
+            class="blue"
+            onclick="editCall(${index})">
+            編集
+          </button>
+
+          <button
+            class="secondary"
+            onclick="seekTo(${Number(item.time)})">
+            ここへ移動
+          </button>
+
+          <button
+            class="red"
+            onclick="deleteCall(${index})">
+            削除
+          </button>
+
+        </div>
+      `;
+
+      div.querySelector(".entry-text").textContent =
+        item.text;
+
+      list.appendChild(div);
+
+    });
+
+}
+
+
+function editCall(index) {
+
+  const item = data.calls[index];
+
+  const newText =
+    prompt(
+      "コールを編集してください",
+      item.text
+    );
+
+  if (newText === null) return;
+
+  const newTime =
+    prompt(
+      "開始時刻（秒）",
+      item.time
+    );
+
+  if (newTime === null) return;
+
+  const newDuration =
+    prompt(
+      "表示時間（秒）",
+      item.duration
+    );
+
+  if (newDuration === null) return;
+
+  const time = Number(newTime);
+
+  const duration = Number(newDuration);
+
+  if (
+    !Number.isFinite(time) ||
+    time < 0 ||
+    !Number.isFinite(duration) ||
+    duration <= 0
+  ) {
+
+    alert("入力された数値が正しくありません。");
+
+    return;
+
+  }
+
+  data.calls[index] = {
+
+    time: Number(time.toFixed(2)),
+
+    duration: Number(duration.toFixed(2)),
+
+    text: newText
+
+  };
+
+  data.calls.sort(
+    (a,b) => a.time - b.time
+  );
+
+  saveCurrentData();
+
+  renderCalls();
+
+}
+
+
+function deleteCall(index) {
+
+  if (
+    !confirm(
+      "このコールを削除しますか？"
+    )
+  ) {
+    return;
+  }
+
+  data.calls.splice(index, 1);
+
+  saveCurrentData();
+
+  renderCalls();
+
+}
+
+
+/* =========================================================
+   指定時刻へ移動
+========================================================= */
+
+function seekTo(time) {
+
+  if (!playerReady) return;
+
+  player.seekTo(
+    Number(time),
+    true
+  );
+
+  player.pauseVideo();
+
+}
+
+
+/* =========================================================
+   JSON書き出し
+========================================================= */
+
+function downloadJSON() {
+
+  const json =
+    JSON.stringify(
+      data,
+      null,
+      2
+    );
+
+  const blob =
+    new Blob(
+      [json],
+      {
+        type: "application/json"
+      }
+    );
+
+  const url =
+    URL.createObjectURL(blob);
+
+  const a =
+    document.createElement("a");
+
+  a.href = url;
+
+  a.download =
+    data.song + ".json";
+
+  document.body.appendChild(a);
+
+  a.click();
+
+  a.remove();
+
+  URL.revokeObjectURL(url);
+
+}
+
+
+/* =========================================================
+   JSON読み込み
+========================================================= */
+
+function toggleImport() {
+
+  document
+    .getElementById("importArea")
+    .classList.toggle("show");
+
+}
+
+
+function importJSON() {
+
+  const input =
+    document.getElementById("jsonFile");
+
+  const file =
+    input.files[0];
+
+  if (!file) {
+
+    alert("JSONファイルを選択してください。");
+
+    return;
+
+  }
+
+  const reader =
+    new FileReader();
+
+  reader.onload = function(event) {
+
+    try {
+
+      const imported =
+        JSON.parse(event.target.result);
+
+      if (
+        imported.videoId !==
+        songs[currentSongIndex].videoId
+      ) {
+
+        const ok =
+          confirm(
+            "このJSONは現在選択している曲と違う曲のデータです。\n\n" +
+            "現在の曲：" +
+            songs[currentSongIndex].song +
+            "\n" +
+            "JSONの曲：" +
+            imported.song +
+            "\n\n" +
+            "それでも読み込みますか？"
+          );
+
+        if (!ok) return;
+
+      }
+
+      data = {
+
+        song:
+          imported.song ||
+          songs[currentSongIndex].song,
+
+        videoId:
+          imported.videoId ||
+          songs[currentSongIndex].videoId,
+
+        lyrics:
+          Array.isArray(imported.lyrics)
+            ? imported.lyrics
+            : [],
+
+        calls:
+          Array.isArray(imported.calls)
+            ? imported.calls
+            : []
+
+      };
+
+      saveCurrentData();
+
+      document.getElementById("lyricsInput").value =
+        data.lyrics
+          .sort((a,b) => a.time - b.time)
+          .map(item => item.text)
+          .join("\n");
+
+      renderLyrics();
+
+      renderCalls();
+
+      alert(
+        "JSONを読み込みました！"
+      );
+
+    } catch (error) {
+
+      console.error(error);
+
+      alert(
+        "JSONを読み込めませんでした。\nファイルの内容を確認してください。"
+      );
+
+    }
+
+  };
+
+  reader.readAsText(file);
+
+}
+
+
+/* =========================================================
+   コード書き出し
+========================================================= */
+
+function showCodeExport() {
+
+  const output =
+    document.getElementById("codeOutput");
+
+  const textarea =
+    document.getElementById("codeTextarea");
+
+  const code =
+`const songData = ${JSON.stringify(data, null, 2)};`;
+
+  textarea.value = code;
+
+  output.classList.add("show");
+
+  textarea.focus();
+
+}
+
+
+async function copyCode() {
+
+  const textarea =
+    document.getElementById("codeTextarea");
+
+  try {
+
+    await navigator.clipboard.writeText(
+      textarea.value
+    );
+
+    alert(
+      "コードをコピーしました！"
+    );
+
+  } catch (error) {
+
+    textarea.select();
+
+    document.execCommand("copy");
+
+    alert(
+      "コードをコピーしました！"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   初期データ読み込み
+========================================================= */
+
+songSelect.value = "0";
+
+data =
+  loadSavedData(0);
+
+document.getElementById("lyricsInput").value =
+  data.lyrics
+    .sort((a,b) => a.time - b.time)
+    .map(item => item.text)
+    .join("\n");
+
+renderLyrics();
+
+renderCalls();
+
+
+/* =========================================================
+   YouTube API読み込み
+========================================================= */
+
+const youtubeScript =
+  document.createElement("script");
+
+youtubeScript.src =
+  "https://www.youtube.com/iframe_api";
+
+document.head.appendChild(
+  youtubeScript
+);
+
+</script>
+
+</body>
+</html>
